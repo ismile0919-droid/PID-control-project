@@ -1,0 +1,18 @@
+cd ~/vl53l0x
+
+source .venv/bin/activate
+
+deactivate
+------------------------------------------
+vl53l0x 폴더 : 레이저 거리센서 프로그램 관련 파일 보관 장소(폴더)
+
+.venv 폴더 : 프로젝트에서 사용할 파이썬 라이브러리를 따로 관리하는 폴더
+		adafruit-blinka
+		adafruit-circuitpython-vl53l0x
+		adafruit-circuitpython-motor
+		이런 것들이 설치되어있는 폴더라고 보면 된다.
+
+
+=====
+파이썬 파일 실행시에 vl53l0x 폴더로 이동한 다음(cd) 가상환경을 켜주고(안 키면 라이브러리 참조가 안됨) 
+그 다음에 python3 tset1111.py 이렇게 해줘야한다.

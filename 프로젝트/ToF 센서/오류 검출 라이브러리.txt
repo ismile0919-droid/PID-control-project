@@ -1,0 +1,7 @@
+vl53l1x
+@property
+def distance(self):
+    if self._read_register(_VL53L1X_RESULT__RANGE_STATUS)[0] != 0x09:
+        return None
+
+vl53l0x

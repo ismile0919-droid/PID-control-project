@@ -1,0 +1,59 @@
+working directory
+개발자가 작업을 진행하는 공간
+->
+staging area
+수정 이력을 대기(캐시 느낌)
+->
+repository
+수정이력이 기록, 저장되는 장소
+3단계!!
+
+
+working directory만 개발자가 관여하고 staging과 reposi는 git이 관리한다. 개발자는 명령만 내리면 됨. 
+
+untracked file = 추적되지 않는 상태
+unmodified file = 추적중이지만 수정 사항이 없는 상태
+modified file = 추적중이며 수정사항이 감지된 상태
+
+HEAD->master
+master or main : 브랜치 명이다. 내가 지금 보고 있는 원본을 말한다.
+HEAD : 현재 보고 있는 것.
+
+
+##명령어##
+최초 : 해당 폴더를 git 저장소로 사용하겠다. = git init
+
+git status : 깃 프로젝트 상태 확인
+git add : 워킹 디렉토리 내 문서를 스테이징 영역에 추가하는 깃 명령어
+->생성한 파일에 commit을 추가하거나 하려면 add가 선행되어야 한다.
+->commit을 한 번 했다면 수정된 것을 다시 add로 올려줘야한다.
+->파일을 수정한 것에 대해 commit(주석)을 달아주는 것이다. 따라서 commit 전에 add를 해주자.
+예)    프로젝트 폴더 생성
+	git init
+	git status
+	git add .
+	git commit -m "my first project"
+	...
+
+git commit : 커밋한 수정 이력을 확인하는 깃 명령어
+git commit -m "내용" : 터미널 에디터를 켜지 않고 커밋 내용을 바로 작성해줌.
+git log : 로그보기
+touch .gitignore : git이 감지하지 않는 것.
+nano.gitignore : 터미널에 에디터 열기(gitignore)
+->nano에 들어가서 숨기고 싶은 파일 명을 적고 엔터.
+
+
+git log -p :커밋의 변경 사항까지 출력
+git log --oneline : 커밋을 요약해 한 줄 씩 출력하는 옵션
+git checkout : 문서 내용을 특정 커밋으로 되돌리는 명령어
+git reflog : HEAD포인터의 참조 이력을 출력하는 명령어
+->head의 이력을 보여준다=head는 현재 보고 있는 것. 따라서 뭘 봤는지 알 수 있음.
+
+
+##branch 관리##
+git branch : 현재 브런치 목록을 볼 수 있음
+git branch 브런치 이름 : 새로운 브런치를 생성하는 명령어
+git checkout 브런치이름 : 작업중인 브런치를 변경하는 명령어
+git merge 브런치 이름 : 현재 브런치에 다른 브런치의 내용을 병합하는 명령어
+
+
