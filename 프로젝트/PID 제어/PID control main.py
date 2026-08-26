@@ -12,8 +12,8 @@ import adafruit_vl53l1x
 i2c=board.I2C()
 
 #xshut pin
-xshut1=digitalio.DigitalInOut(board.D20)
-xshut2=digitalio.DigitalInOut(board.D21)
+xshut1=digitalio.DigitalInOut(board.D21)
+xshut2=digitalio.DigitalInOut(board.D20)
 
 xshut1.switch_to_output(value=False)
 xshut2.switch_to_output(value=False)
@@ -41,38 +41,41 @@ sensor2=adafruit_vl53l0x.VL53L0X(i2c)
 
 print("Dual Sensor / sensor1=VL53L1X / sensor2=VL53L0X / TEST")
 print("detect test distance")
+print("\n")
 
 try:
-    test1 = None
-
-    if sensor1.data_ready:
-        test1=sensor1.distance*10
-        sensor1.clear_interrupt()
-    elif test1 is None:
-         print("VL53L1X ranging error")
-         gpio.cleanup()
-         sys.exit()
-    else:
-        print("VL53L1X sensor error")
+     test1 = None
+     time.sleep(0.1)
+    
+     if sensor1.data_ready:
+          test1=sensor1.distance
+          test1=test1 * 10
+          sensor1.clear_interrupt()
+     elif test1 is None:
+          print("VL53L1X ranging error")
+          gpio.cleanup()
+          sys.exit()
+     else:
+        print("VL53L1X sensor error 1")
         gpio.cleanup()
         sys.exit()
 
-    try:
+     try:
         test2=None
         test2=sensor2.range
 
         if test2 is None or test2<0 or test2>2000:
              print("VL53L0X ranging error")
 
-    except Exception as e:
-         print("VL53L0X sensor error", e)
+     except Exception as e:
+         print("VL53L0X sensor error 1", e)
 
-    print(
+     print(
             "sensor 1(VL53L1X) : ", test1, "mm"
-            "sensor 2(VL53L0X) : ", test2, "mm"
-            "Address setting is finished")
+            "\nsensor 2(VL53L0X) : ", test2, "mm"
+            "\nAddress setting is finished")
 
-    time.sleep(0.1)
+     time.sleep(0.1)
 except KeyboardInterrupt:
     print("\n EXIT")
 
@@ -89,20 +92,16 @@ try:
     gpio.setup(servo_pin, gpio.OUT)
     pwm=gpio.PWM(servo_pin,50)
     pwm.start(7.5)
-    max_duty_span = 2.5
 
     miss_count1=0
     distance1=None
     distance2_prev=None
 
     while True:
-
-
-
         #vl53l0x
         raw_distance2=sensor2.range
         if raw_distance2 is None or raw_distance2<0 or raw_distance2 >=2000:
-             print("VL53L0X sensor error")
+             print("VL53L0X sensor error 2")
              break
         
         if distance2_prev is None:
@@ -126,7 +125,7 @@ try:
              miss_count1 +=1
 
         if miss_count1>=3:
-             print("VL53L1X seneor error")
+             print("VL53L1X seneor error 2")
              break
 
         if distance1 is None:
@@ -135,21 +134,26 @@ try:
 
 
         #p control
-        Kp=1
+        Kp=0.8
 
-        deviation = distance1-distance2/10
-        deviation = max(-50, min(50, deviation))
+        deviation = distance1-distance2/10 #cm
+        deviation = max(-5, min(5, deviation))
     
 
-        if abs(deviation) < 1.0:
-            pwm.ChangeDutyCycle(7.5)
+        if abs(deviation) < 0.5:
+            pwm.ChangeDutyCycle(7.2)
             continue
+        elif deviation > 0:
+             duty_delta = Kp*(deviation/5)*2.5
+             duty_p = 7.4 + min(2.5,duty_delta)
         else:
-             duty_p = Kp*(deviation/50)*2.5
-             duty_p = max(-2.5, min(2.5, duty_p))
-
-        Ut = 7.5 + (Kp*duty_p )
-
+             duty_delta = Kp*(abs(deviation)/5)*2.2
+             duty_p = 7.0 - min(2.2,duty_delta)
+     
+        Ut = duty_p 
+        print("D1:", distance1, "D2:", distance2/10,
+              "error:", deviation,"Ut:", Ut)
+     
         pwm.ChangeDutyCycle(Ut)
 
 
