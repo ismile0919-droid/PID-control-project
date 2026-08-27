@@ -97,6 +97,10 @@ try:
     distance1=None
     distance2_prev=None
 
+    #d control
+    prev_deviation = 0.0
+    prev_time=time.time()
+
     while True:
         #vl53l0x
         raw_distance2=sensor2.range
@@ -109,8 +113,6 @@ try:
         else:
              distance2 = (distance2_prev+raw_distance2)/2
         distance2_prev = raw_distance2
-
-
 
         #vl53l1x
         if sensor1.data_ready:
@@ -149,21 +151,31 @@ try:
              duty_delta = Kp*(abs(deviation)/5)*2.0
              duty_p = 7.0 - min(2.2,duty_delta)
      
-        Ut = duty_p 
 
+
+        #D control
+        Kd=0.05
+        current_time=time.time()
+
+        dt=current_time-prev_time
+        prev_time = current_time
+
+        if dt<=0 or dt > 0.2:
+             dt=0.333
+
+        derivation = (deviation-prev_deviation)/dt
+        prev_deviation = deviation
+
+        derivation = max(-50, min(50, derivation))
+        duty_d = Kd*derivation
+
+          #LPF
+
+        Ut = max(4.5, min(10.0, duty_p + duty_d))
+        Ut = duty_p + duty_d
         print("D1:", distance1, "D2:", distance2/10,
               "error:", deviation,"Ut:", Ut)
-     
         pwm.ChangeDutyCycle(Ut)
-
-
-
-        #Ki=1
-        #integralerror = 
-
-        
-        #dutycycle range =  left high 0 ~ 50(stop) ~ 100 Right high
-        #time.sleep(0.02)
 
 
 
@@ -178,4 +190,3 @@ finally:
     xshut2.deinit()
     pwm.stop()
     gpio.cleanup()
-    
