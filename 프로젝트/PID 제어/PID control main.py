@@ -134,23 +134,23 @@ try:
 
 
         #p control
-        Kp=0.8
+        Kp=0.6
 
         deviation = distance1-distance2/10 #cm
         deviation = max(-5, min(5, deviation))
-    
 
-        if abs(deviation) < 0.5:
+        if abs(deviation) <= 1.0:
             pwm.ChangeDutyCycle(7.2)
             continue
-        elif deviation > 0:
-             duty_delta = Kp*(deviation/5)*2.5
+        elif deviation < 0:
+             duty_delta = Kp*(abs(deviation/5))*2.6
              duty_p = 7.4 + min(2.5,duty_delta)
         else:
-             duty_delta = Kp*(abs(deviation)/5)*2.2
+             duty_delta = Kp*(abs(deviation)/5)*2.0
              duty_p = 7.0 - min(2.2,duty_delta)
      
         Ut = duty_p 
+
         print("D1:", distance1, "D2:", distance2/10,
               "error:", deviation,"Ut:", Ut)
      
