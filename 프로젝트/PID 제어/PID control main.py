@@ -87,7 +87,8 @@ time.sleep(1.0)
 try:
     time.sleep(0.03) #vl53l1x data ready(timing budget=20ms)
 
-    servo_pin = 18                  #servo motor
+    #servo motor
+    servo_pin = 18
     gpio.setmode(gpio.BCM)
     gpio.setup(servo_pin, gpio.OUT)
     pwm=gpio.PWM(servo_pin,50)
@@ -95,11 +96,17 @@ try:
 
     miss_count1=0
     distance1=None
+    raw_distance2=None
     distance2_prev=None
 
     #d control
     prev_deviation = 0.0
     prev_time=time.time()
+
+    #LPF(EMA)
+    alpha=0.2
+    def low_pass_filter(raw_distance2, filtered, alpha):
+        return alpha*raw_distance2+(1-alpha)*filtered
 
     while True:
         #vl53l0x
@@ -110,10 +117,14 @@ try:
         
         if distance2_prev is None:
              distance2=raw_distance2
+             filtered=raw_distance2
         else:
              distance2 = (distance2_prev+raw_distance2)/2
+             filtered=low_pass_filter(raw_distance2,filtered,alpha)
+          
         distance2_prev = raw_distance2
-
+        distance2_filtered = filtered
+        
         #vl53l1x
         if sensor1.data_ready:
              new_distance1 = sensor1.distance
@@ -150,11 +161,12 @@ try:
         else:
              duty_delta = Kp*(abs(deviation)/5)*2.0
              duty_p = 7.0 - min(2.2,duty_delta)
-     
 
 
         #D control
         Kd=0.05
+        deviation_filtered = distance1-distance2_filtered/10
+        deviation_filtered = max(-5, min(5, deviation_filtered))
         current_time=time.time()
 
         dt=current_time-prev_time
@@ -163,16 +175,14 @@ try:
         if dt<=0 or dt > 0.2:
              dt=0.333
 
-        derivation = (deviation-prev_deviation)/dt
-        prev_deviation = deviation
+        derivation = (deviation_filtered-prev_deviation)/dt
+        prev_deviation = deviation_filtered
 
         derivation = max(-50, min(50, derivation))
         duty_d = Kd*derivation
 
-          #LPF
 
         Ut = max(4.5, min(10.0, duty_p + duty_d))
-        Ut = duty_p + duty_d
         print("D1:", distance1, "D2:", distance2/10,
               "error:", deviation,"Ut:", Ut)
         pwm.ChangeDutyCycle(Ut)
